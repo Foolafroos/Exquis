@@ -1,0 +1,65 @@
+# Exquis Configuration
+
+# Brain Engine Configuration
+brain_engine:
+  tribe:
+    provider: "huggingface_api"  # or "local"
+    model: "facebook/tribev2"
+  
+  clip:
+    provider: "nvidia_nim"  # or "local"
+    model: "nvclip"
+
+# Vision Configuration  
+vision:
+  provider: "nvidia_nim"  # or "openai", "anthropic", "google"
+  model: "meta/llama-3.2-11b-vision-instruct"
+  temperature: 0.7
+  max_tokens: 1024
+
+# LLM Configuration for MiroFish Agents
+llm:
+  primary:
+    provider: "nvidia_nim"
+    model: "nvidia/nemotron-4-340b-instruct"
+  
+  fallbacks:
+    - provider: "openai"
+      model: "gpt-4o"
+    - provider: "anthropic"
+      model: "claude-sonnet-4-20250514"
+    - provider: "google"
+      model: "gemini-2.0-flash"
+    - provider: "ollama"
+      model: "qwen2.5:32b"
+  
+  # Generation settings
+  temperature: 0.8
+  max_tokens: 150
+
+# Simulation Configuration
+simulation:
+  # Interaction modes: posts, debate, consensus, all
+  default_mode: "all"
+  
+  # Agent counts
+  default_population_size: 10
+  max_population_size: 1000
+  
+  # Simulation settings
+  debate_participants: 20
+  consensus_rounds: 3
+  batch_size: 10
+
+# Dashboard Configuration
+dashboard:
+  host: "0.0.0.0"
+  port: 3000
+  refresh_interval: 5000  # ms
+
+# Neo4j Configuration
+neo4j:
+  uri: "bolt://localhost:7687"
+  user: "neo4j"
+  password: "exquis"
+  database: "neo4j"
