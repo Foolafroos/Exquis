@@ -5,6 +5,18 @@ import io
 
 api_bp = Blueprint("api", __name__)
 
+# ── Security: API Key authentication on all API routes ──
+@api_bp.before_request
+def check_api_key():
+    # Lazy import to avoid circular dependency
+    from ..app import app as flask_app
+    api_key = flask_app.config.get("API_KEY", "")
+    if not api_key:
+        return None  # Auth disabled if no key configured
+    key = request.headers.get("X-API-Key") or request.args.get("api_key")
+    if key != api_key:
+        return (jsonify({"error": "Unauthorized"}), 401)
+
 # Global state (in production, use proper state management)
 _state = {
     "current_image": None,
