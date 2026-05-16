@@ -32,6 +32,10 @@ def analyze_image():
         image_data = data.get("image")
         population_size = data.get("population_size", 10)
 
+        # Validate population size
+        if population_size and population_size > 1000:
+            return jsonify({"error": "population_size exceeds maximum of 1000"}), 400
+
         if not image_data:
             return jsonify({"error": "No image provided"}), 400
 
@@ -107,10 +111,11 @@ def analyze_image():
         )
 
     except Exception as e:
+        # Log internally, return generic error to client
         import traceback
 
         traceback.print_exc()
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "Image analysis failed"}), 500
 
 
 @api_bp.route("/simulation/run", methods=["POST"])
@@ -158,7 +163,7 @@ def run_simulation():
             else:
                 return jsonify(
                     {
-                        "error": "No LLM provider available. Configure NVIDIA_API_KEY or other provider."
+                        "error": "No LLM provider available. Configure API keys in .env."
                     }
                 ), 500
 
@@ -183,7 +188,7 @@ def run_simulation():
         import traceback
 
         traceback.print_exc()
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "Simulation failed"}), 500
 
 
 @api_bp.route("/brain/visualization", methods=["GET"])
@@ -226,7 +231,7 @@ def get_brain_visualization():
         )
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "Visualization failed"}), 500
 
 
 @api_bp.route("/agents/list", methods=["GET"])
@@ -238,6 +243,8 @@ def list_agents():
             return jsonify({"error": "No data available"}), 400
 
         limit = request.args.get("limit", 10, type=int)
+        # Cap limit to prevent massive responses
+        limit = min(limit, 100)
 
         agents = [
             {
@@ -254,7 +261,7 @@ def list_agents():
         )
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "Failed to list agents"}), 500
 
 
 @api_bp.route("/config/providers", methods=["GET"])
@@ -272,7 +279,8 @@ def get_provider_config():
                 "health": provider.health_check(),
             }
         except Exception as e:
-            providers[provider_type] = {"available": False, "error": str(e)}
+            # Don't leak internal error details
+            providers[provider_type] = {"available": False, "error": "Provider unavailable"}
 
     return jsonify(
         {
@@ -315,8 +323,9 @@ def test_provider():
         )
 
     except Exception as e:
+        provider_name = request.get_json(silent=True)
         return jsonify(
-            {"success": False, "provider": data.get("provider"), "error": str(e)}
+            {"success": False, "provider": provider_name.get("provider") if provider_name else None, "error": "Provider test failed"}
         ), 500
 
 

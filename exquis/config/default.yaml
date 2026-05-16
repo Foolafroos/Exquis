@@ -61,5 +61,5 @@ dashboard:
 neo4j:
   uri: "bolt://localhost:7687"
   user: "neo4j"
-  password: "exquis"
+  password: "${NEO4J_PASSWORD}"  # Read from environment
   database: "neo4j"
